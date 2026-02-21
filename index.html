@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#004294" />
+  <meta name="description" content="Controle de Coberturas dos Rotativos - Orbenk" />
+  <title>COBERTURAS ROTATIVOS | Portal do Vigilante</title>
+
+  <link rel='preconnect' href='https://fonts.googleapis.com'>
+  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+  <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap' rel='stylesheet'>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'>
+
+  <style>
+    :root {
+      --primary: #0066ff;
+      --primary-glow: rgba(0, 102, 255, 0.4);
+      --secondary: #00d4ff;
+      --accent: #ff3e3e;
+      --success: #00ff88;
+      --warning: #ffaa00;
+      --bg-void: #020408;
+      --bg-surface: #0a0f1c;
+      --bg-elevated: #111827;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-active: rgba(0, 102, 255, 0.5);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --gradient-hero: linear-gradient(135deg, #0066ff 0%, #00d4ff 100%);
+      --header-height: 70px;
+      --bottom-nav-height: 70px;
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @property --gradient-angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      background: var(--bg-void);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-top: var(--header-height);
+      padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+    }
+
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 102, 255, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 212, 255, 0.08), transparent),
+        radial-gradient(ellipse 50% 30% at 20% 100%, rgba(0, 102, 255, 0.05), transparent);
+    }
+
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(2, 4, 8, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      height: var(--header-height);
+      transition: all 0.3s ease;
+    }
+
+    header.scrolled {
+      background: rgba(2, 4, 8, 0.98);
+      border-bottom-color: var(--border-active);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--gradient-hero);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px var(--primary-glow);
+      flex-shrink: 0;
+    }
+
+    .brand-icon::before {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(from var(--gradient-angle), transparent, rgba(255,255,255,0.3), transparent);
+      animation: rotate 4s linear infinite;
+    }
+
+    .brand-icon i {
+      position: relative;
+      z-index: 1;
+      color: white;
+    }
+
+    @keyframes rotate {
+      to { --gradient-angle: 360deg; }
+    }
+
+    .brand-text h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text span {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      display: block;
+    }
+
+    .back-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 2rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--success);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h2 {
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.03em;
+    }
+
+    .hero h2 span {
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .form-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--gradient-hero);
+    }
+
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .form-header i {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 102, 255, 0.1);
+      border-radius: 12px;
+      color: var(--primary);
+      font-size: 1.25rem;
+    }
+
+    .form-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .form-header span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-label i {
+      color: var(--primary);
+      font-size: 0.875rem;
+    }
+
+    .form-label .required {
+      color: var(--accent);
+      margin-left: 2px;
+    }
+
+    .form-select, .form-input {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.25rem;
+      padding-right: 3rem;
+    }
+
+    .form-input {
+      background-image: none;
+      padding-right: 1.25rem;
+      cursor: text;
+    }
+
+    .form-select:focus, .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    .form-select option {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      padding: 0.5rem;
+    }
+
+    .time-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1.25rem;
+      background: var(--gradient-hero);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(0, 102, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .submit-btn:hover::before {
+      transform: translateX(100%);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(0, 102, 255, 0.4);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .submit-btn i {
+      font-size: 1.25rem;
+    }
+
+    .clear-btn {
+      width: 100%;
+      padding: 1rem;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+      margin-top: 0.75rem;
+    }
+
+    .clear-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(255, 62, 62, 0.05);
+    }
+
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .info-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .info-card i {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .info-card span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .info-card strong {
+      font-size: 0.9rem;
+      color: var(--text-primary);
+    }
+
+    .toast {
+      position: fixed;
+      top: calc(var(--header-height) + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      z-index: 9999;
+      opacity: 0;
+      transition: all 0.3s;
+      max-width: 90vw;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+    }
+
+    .toast.success { border-color: rgba(0, 255, 136, 0.3); }
+    .toast.success .toast-icon { background: rgba(0, 255, 136, 0.1); color: var(--success); }
+
+    .toast.error { border-color: rgba(255, 62, 62, 0.3); }
+    .toast.error .toast-icon { background: rgba(255, 62, 62, 0.1); color: var(--accent); }
+
+    .toast-content {
+      flex: 1;
+    }
+
+    .toast-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .toast-message {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 4, 8, 0.9);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 3px solid var(--border-subtle);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 1rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    .footer-text {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    @media (min-width: 769px) {
+      body {
+        padding-bottom: 0;
+      }
+      main {
+        padding: 2rem;
+      }
+    }
+
+    @media (hover: none) {
+      .submit-btn:active {
+        transform: scale(0.98);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <header id="header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Portal do Vigilante</h1>
+          <span>Orbenk Segurança</span>
+        </div>
+      </div>
+      <a href="https://douglasjelinsky-code.github.io/supervisao/" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-badge">
+        <i class="fas fa-sync-alt"></i>
+        Controle de Rotativos
+      </div>
+      <h2>VIGILANTES <span>ROTATIVOS</span></h2>
+      <p>Registre sua cobertura efetuada no dia</p>
+    </section>
+
+    <div class="form-container">
+      <div class="form-header">
+        <i class="fas fa-clipboard-check"></i>
+        <div>
+          <h3>Formulário de Cobertura</h3>
+          <span>Preencha todos os campos obrigatórios</span>
+        </div>
+      </div>
+
+      <form id="coberturaForm">
+        <!-- Nome do Vigilante -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-user"></i>
+            SEU NOME<span class="required">*</span>
+          </label>
+          <select class="form-select" id="nome" required>
+            <option value="" disabled selected>Selecione seu nome</option>
+            <option value="5797 JOÃO FUCK">5797 JOÃO FUCK</option>
+            <option value="8426 ALCIDES BENITES">8426 ALCIDES BENITES</option>
+            <option value="8427 ISMAIAS CAVALCANTI">8427 ISMAIAS CAVALCANTI</option>
+            <option value="5188 GABRIEL SANTOS">5188 GABRIEL SANTOS</option>
+            <option value="5223 OSVALDO DE JESUS">5223 OSVALDO DE JESUS</option>
+            <option value="8242 PAMMELLA ROBERTA">8242 PAMMELLA ROBERTA</option>
+            <option value="8438 APARECIDO BALULA">8438 APARECIDO BALULA</option>
+          </select>
+        </div>
+
+        <!-- Motivo da Cobertura -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-exclamation-circle"></i>
+            MOTIVO DA COBERTURA<span class="required">*</span>
+          </label>
+          <select class="form-select" id="motivo" required>
+            <option value="" disabled selected>Selecione o motivo</option>
+            <option value="FALTA">FALTA</option>
+            <option value="ATESTADO">ATESTADO</option>
+            <option value="RECICLAGEM">RECICLAGEM</option>
+            <option value="TREINAMENTO">TREINAMENTO</option>
+          </select>
+        </div>
+
+        <!-- Quem está cobrindo -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-user-shield"></i>
+            QUEM VOCÊ ESTÁ COBRINDO?
+          </label>
+          <input type="text" class="form-input" id="quemCobrindo" placeholder="Nome do vigilante que está sendo coberto">
+        </div>
+
+        <!-- Nome do Posto -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-building"></i>
+            NOME DO POSTO COBERTURA?<span class="required">*</span>
+          </label>
+          <input type="text" class="form-input" id="posto" placeholder="Digite o nome do posto" required>
+        </div>
+
+        <!-- Horários -->
+        <div class="time-group">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-clock"></i>
+              HORA DE ENTRADA
+            </label>
+            <input type="time" class="form-input" id="horaEntrada">
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-clock"></i>
+              HORA DE SAÍDA
+            </label>
+            <input type="time" class="form-input" id="horaSaida">
+          </div>
+        </div>
+
+        <!-- Supervisor Responsável -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-user-tie"></i>
+            SUPERVISOR RESPONSÁVEL<span class="required">*</span>
+          </label>
+          <select class="form-select" id="supervisor" required>
+            <option value="" disabled selected>Selecione o supervisor</option>
+            <option value="SUPERVISOR DOUGLAS">SUPERVISOR DOUGLAS</option>
+            <option value="SUPERVISOR EMANUEL">SUPERVISOR EMANUEL</option>
+            <option value="SUPERVISOR MARCIO">SUPERVISOR MARCIO</option>
+            <option value="SUPERVISOR ALLAN">SUPERVISOR ALLAN</option>
+            <option value="SUPERVISOR BRANDÃO">SUPERVISOR BRANDÃO</option>
+            <option value="SUPERVISOR DENER">SUPERVISOR DENER</option>
+            <option value="SUPERVISOR DARI">SUPERVISOR DARI</option>
+          </select>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <i class="fas fa-paper-plane"></i>
+          ENVIAR REGISTRO
+        </button>
+
+        <button type="button" class="clear-btn" id="clearBtn" onclick="clearForm()">
+          <i class="fas fa-trash-alt"></i>
+          Limpar Formulário
+        </button>
+      </form>
+
+      <div class="info-cards">
+        <div class="info-card">
+          <i class="fas fa-database"></i>
+          <span>Integração</span>
+          <strong>Google Sheets</strong>
+        </div>
+        <div class="info-card">
+          <i class="fas fa-check-double"></i>
+          <span>Status</span>
+          <strong>Em Tempo Real</strong>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-text">
+      Supervisor: Douglas Jelinsky | Orbenk Segurança © 2026
+    </div>
+  </footer>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Enviando registro...</div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">Sucesso</div>
+      <div class="toast-message">Operação realizada</div>
+    </div>
+  </div>
+
+  <script>
+    // 🚀 URL DO WEBHOOK - SUBSTITUA APÓS IMPLANTAR O SCRIPT
+    const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw8wy7SXqfxfLNi-BBQsJ0N7WudKvZRHsCkdnmz_cpGud2ffaTb0fGvJH7sfMxc7hYT/exec';
+    
+    // ID da planilha para referência: 1XSFnbnYqTOgUQqLwTaFLBmbqSyK7nwiC7EyXGK4UZWA
+
+    // Header scroll effect
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+
+    // Toast function
+    function showToast(title, message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.className = `toast ${type}`;
+      toast.querySelector('.toast-title').textContent = title;
+      toast.querySelector('.toast-message').textContent = message;
+      toast.querySelector('.toast-icon').innerHTML = type === 'success' 
+        ? '<i class="fas fa-check-circle"></i>' 
+        : '<i class="fas fa-exclamation-circle"></i>';
+
+      toast.classList.add('show');
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Clear form
+    function clearForm() {
+      document.getElementById('coberturaForm').reset();
+      showToast('Limpo', 'Formulário resetado com sucesso!');
+    }
+
+    // Form Submit
+    document.getElementById('coberturaForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+
+      // Validar se webhook está configurado
+      if (WEBHOOK_URL.includes('SEU_ID_AQUI')) {
+        showToast('Atenção!', 'Configure o URL do webhook no código primeiro!', 'error');
+        return;
+      }
+
+      // Coletar dados
+      const data = {
+        nome: document.getElementById('nome').value,
+        motivo: document.getElementById('motivo').value,
+        quemCobrindo: document.getElementById('quemCobrindo').value || '',
+        posto: document.getElementById('posto').value,
+        horaEntrada: document.getElementById('horaEntrada').value || '',
+        horaSaida: document.getElementById('horaSaida').value || '',
+        supervisor: document.getElementById('supervisor').value
+      };
+
+      // Desabilitar botão e mostrar loading
+      submitBtn.disabled = true;
+      loadingOverlay.classList.add('show');
+
+      try {
+        // Criar FormData como alternativa mais confiável
+        const formData = new FormData();
+        Object.keys(data).forEach(key => {
+          formData.append(key, data[key]);
+        });
+
+        // Enviar para Google Sheets via webhook
+        // Usando no-cors mode para evitar problemas de CORS
+        await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: formData
+        });
+
+        // Como no-cors não retorna response legível, assumimos sucesso
+        loadingOverlay.classList.remove('show');
+        showToast('Sucesso!', 'Registro enviado para a planilha');
+        
+        // Limpar formulário após 2 segundos
+        setTimeout(() => {
+          document.getElementById('coberturaForm').reset();
+        }, 2000);
+
+      } catch (error) {
+        console.error('Erro:', error);
+        loadingOverlay.classList.remove('show');
+        showToast('Erro', 'Falha ao enviar. Tente novamente.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Welcome toast
+    setTimeout(() => {
+      showToast('Bem-vindo', 'Preencha o formulário de cobertura');
+    }, 500);
+  </script>
+</body>
+</html>
